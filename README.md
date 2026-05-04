@@ -17,7 +17,7 @@
 
 2. Computercraft installing
    ```bash
-   wget https://raw.githubusercontent.com/McCDcardMaster/MC-DOSSHELL/v1.00/Installer/setup.lua setup.lua
+   wget https://raw.githubusercontent.com/McCDcardMaster/MC-DOSSHELL/master/Installer/setup.lua setup.lua
 
 <img width="925" height="530" alt="2026-05-04_15 25 01" src="https://github.com/user-attachments/assets/c64337c3-9b33-4f5e-a80e-70762b827c1c" />
 <img width="925" height="530" alt="2026-05-04_15 25 22" src="https://github.com/user-attachments/assets/d506ce00-5d4d-4a92-b50e-956d787f6613" />
