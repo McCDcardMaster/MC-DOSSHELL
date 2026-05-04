@@ -251,7 +251,7 @@ local function draw()
     term.setCursorPos(1, h)
     term.setBackgroundColor(colors.lightGray); term.setTextColor(colors.black)
     term.clearLine()
-    local hints = " F1=Menu  F3=Exit  F5=Run  Tab=Switch  Enter=Open/Run"  -- F5 added
+    local hints = " F1=Menu F3=Exit Tab=Switch Enter=Open/Run"
     term.write(hints)
     if errorMsg ~= "" and os.epoch("utc") < errorMsgExpire then
         term.setCursorPos(#hints + 2, h)
