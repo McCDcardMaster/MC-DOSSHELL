@@ -4,7 +4,7 @@
 -- ============================================
 
 -- Параметры
-local REPO_URL = "https://raw.githubusercontent.com/McCDcardMaster/MC-DOSSHELL/master/dosshell.lua"
+local REPO_URL = "https://raw.githubusercontent.com/McCDcardMaster/MC-DOSSHELL/V1.01/dosshell.lua"
 local INSTALL_DIR = "/DOS"
 local SHELL_PATH = INSTALL_DIR .. "/DOSSHELL.lua"
 
