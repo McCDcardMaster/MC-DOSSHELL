@@ -247,11 +247,11 @@ local function draw()
         end
     end
 
-    -- Bottom line: hints + error message
+    -- Bottom line: hints + error message (UPDATED: added F5=Run)
     term.setCursorPos(1, h)
     term.setBackgroundColor(colors.lightGray); term.setTextColor(colors.black)
     term.clearLine()
-    local hints = " F1=Menu  F3=Exit  Tab=Switch  Enter=Open/Run"
+    local hints = " F1=Menu  F3=Exit  F5=Run  Tab=Switch  Enter=Open/Run"  -- F5 added
     term.write(hints)
     if errorMsg ~= "" and os.epoch("utc") < errorMsgExpire then
         term.setCursorPos(#hints + 2, h)
@@ -307,13 +307,15 @@ while true do
             showMenu = not showMenu
         elseif p1 == keys.f3 then      -- Exit
             break
+        elseif p1 == keys.f5 then      -- Run (F5 added)
+            handleFileAction(2)
         elseif p1 == keys.f7 then      -- Move
             handleFileAction(3)
         elseif p1 == keys.f8 then      -- Copy
             handleFileAction(4)
         elseif p1 == keys.f9 then      -- Rename
             handleFileAction(6)
-        elseif p1 == keys.n then     -- Create Dir
+        elseif p1 == keys.n then       -- Create Dir
             handleFileAction(7)
         elseif p1 == keys.delete then  -- Delete
             handleFileAction(5)
