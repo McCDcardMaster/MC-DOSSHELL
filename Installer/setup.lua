@@ -10,12 +10,10 @@ local SHELL_PATH = INSTALL_DIR .. "/DOSSHELL.lua"
 
 local w, h = term.getSize()
 
--- Проверка HTTP (обязательно для скачивания)
 if not http then
-    error("HTTP API Not Enable! Please его in settings Mod")
+    error("HTTP API Not Enable! Please Enable it in settings Mod")
 end
 
--- Вспомогательные функции отрисовки интерфейса
 local function drawHeader()
     term.setBackgroundColor(colors.black)
     term.setTextColor(colors.white)
@@ -42,7 +40,7 @@ local function centerText(y, text, bg, fg)
     term.write(text)
 end
 
--- 1. ЭКРАН ПРИВЕТСТВИЯ
+-- Первый экран
 term.setBackgroundColor(colors.blue)
 term.clear()
 drawHeader()
@@ -63,13 +61,13 @@ while true do
     end
 end
 
--- 2. ПРОЦЕСС УСТАНОВКИ
+-- Установка
 term.setBackgroundColor(colors.blue)
 term.clear()
 drawHeader()
-centerText(5, "Downloading: dosshell.lua from GitHub...")
+centerText(5, "Downloading: DOSSHELL from GitHub...")
 
--- Имитация копирования
+-- Имитация копирования ЛОЛ
 local files = {"IO.SYS", "MCDOS.SYS", "COMMAND.COM", "DOSSHELL.EXE", "CONFIG.SYS"}
 for i, f in ipairs(files) do
     term.setCursorPos(2, h-3)
@@ -77,7 +75,7 @@ for i, f in ipairs(files) do
     term.setTextColor(colors.yellow)
     term.write("Copying: " .. f)
     
-    -- Рисуем прогресс-бар
+    -- Прогресс-бар
     term.setCursorPos(2, h-2)
     term.setBackgroundColor(colors.lightGray)
     term.write(string.rep(" ", w-4))
@@ -88,19 +86,16 @@ for i, f in ipairs(files) do
     sleep(0.6)
 end
 
--- Создаем папку, если её нет
 if not fs.exists(INSTALL_DIR) then 
     fs.makeDir(INSTALL_DIR) 
 end
 
--- Попытка скачать файл с правильной обработкой
 local success = false
-local response, err = http.get(REPO_URL, nil, true) -- разрешаем редиректы
+local response, err = http.get(REPO_URL, nil, true)
 
 if response then
     local responseCode = response.getResponseCode()
     if responseCode == 200 then
-        -- Сохраняем скачанный код
         local f = fs.open(SHELL_PATH, "w")
         f.write(response.readAll())
         f.close()
@@ -113,7 +108,7 @@ if response then
 end
 
 if not success then
-    -- Если ссылка не сработала
+    -- Если не скачалось
     term.setBackgroundColor(colors.red)
     term.clear()
     centerText(4, "FAILED TO DOWNLOAD!", colors.red, colors.white)
@@ -125,12 +120,12 @@ if not success then
     return
 end
 
--- Создание автозагрузки в корне системы
+-- Создание автозагрузки
 local startup = fs.open("/startup.lua", "w")
 startup.write('shell.run("' .. SHELL_PATH .. '")\n')
 startup.close()
 
--- 3. ЗАВЕРШЕНИЕ
+-- ЗАВЕРШЕНИЕ
 term.setBackgroundColor(colors.blue)
 term.clear()
 drawHeader()
