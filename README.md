@@ -1,1 +1,19 @@
-Minecraft Computercraft Graphic shell
+# MC-DOS Shell
+
+**DOSShell** is a lightweight graphical shell inspired by retro DOS file managers and Minecraft’s blocky aesthetics. It provides a two-panel file navigation interface, Lua scripting support, and a minimalistic setup process. Ideal for vintage computing enthusiasts or as a launcher for embedded Lua applications.
+
+## Features
+
+- 📁 **Dual-pane file manager** – browse directories and files with `Tab` switching.
+- 🖥️ **Built-in Lua runner** – execute `.lua` scripts directly from the shell.
+- ⚙️ **Simple setup wizard** – one-key installation (press `ENTER`).
+
+## Installation
+
+1. Download the latest release or clone the repository:
+   ```bash
+   git clone https://github.com/McCDcardMaster/mc-dosshell.git
+   cd mc-dosshell
+
+<img width="925" height="530" alt="2026-05-04_15 25 01" src="https://github.com/user-attachments/assets/c64337c3-9b33-4f5e-a80e-70762b827c1c" />
+<img width="925" height="530" alt="2026-05-04_15 25 22" src="https://github.com/user-attachments/assets/d506ce00-5d4d-4a92-b50e-956d787f6613" />
