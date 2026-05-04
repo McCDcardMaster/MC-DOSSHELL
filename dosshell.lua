@@ -1,6 +1,6 @@
 local w, h = term.getSize()
 local currentPath = ""
-local selectedList = "dirs" -- "dirs" или "files"
+local selectedList = "dirs"
 local selDir, selFile = 1, 1
 local dirs, files = {}, {}
 local mouseX, mouseY = 1, 1
@@ -27,7 +27,7 @@ local function draw()
     term.setBackgroundColor(colors.white)
     term.clear()
     
-    -- 1. Синий заголовок
+    -- Синий заголовок
     term.setCursorPos(1, 1)
 	term.setPaletteColor(colors.blue, 0x1e1d8f)
     term.setBackgroundColor(colors.blue)
@@ -37,19 +37,18 @@ local function draw()
     term.setCursorPos(math.floor((w - #title) / 2), 1)
     term.write(title)
     
-    -- 2. Верхнее меню
+    -- Верхнее меню
     term.setCursorPos(1, 2)
     term.setBackgroundColor(colors.white)
     term.setTextColor(colors.black)
     term.clearLine()
     term.write(" File  Options  View  Tree  Help")
     
-    -- 3. Путь
+    -- Путь и диски
     term.setCursorPos(1, 3)
     local displayPath = " C:\\" .. currentPath:gsub("/", "\\")
     term.write(displayPath)
-    
-    -- 4. Единая серая полоса заголовков (Строка 5)
+	
     term.setBackgroundColor(colors.lightGray)
     term.setTextColor(colors.black)
     term.setCursorPos(1, 5)
@@ -60,7 +59,7 @@ local function draw()
     term.setCursorPos(split + 3, 5)
     term.write("Files")
 
-    -- 5. Отрисовка рамок (Серый фон границ)
+    -- Тут Рамки
     term.setBackgroundColor(colors.gray)
     for i = 6, h-1 do
         term.setCursorPos(1, i); term.write(" ")
@@ -69,7 +68,7 @@ local function draw()
     end
     term.setCursorPos(1, h-1); term.write(string.rep(" ", w))
 
-    -- 6. Папки (слева)
+    -- Тут Папки
     for i, name in ipairs(dirs) do
         if i > h-8 then break end
         term.setCursorPos(2, i + 5)
@@ -82,7 +81,7 @@ local function draw()
         term.write(string.sub(text .. string.rep(" ", split), 1, split - 2))
     end
 
-    -- 7. Файлы (справа)
+    -- Тут Файлы
     for i, name in ipairs(files) do
         if i > h-8 then break end
         term.setCursorPos(split + 1, i + 5)
@@ -95,14 +94,14 @@ local function draw()
         term.write(string.sub(text .. string.rep(" ", w), 1, w - split - 1))
     end
 
-    -- 8. Нижняя панель подсказок
+    -- Нижняя линия
     term.setCursorPos(1, h)
     term.setBackgroundColor(colors.lightGray)
     term.setTextColor(colors.black)
     term.clearLine()
     term.write(" F3=Exit  Tab=Switch  Enter=Open/Run")
 
-    -- 9. Кастомный курсор мыши (отрисовывается в последнюю очередь)
+    -- Мышка
     term.setCursorPos(mouseX, mouseY)
     term.setBackgroundColor(colors.black)
     term.setTextColor(colors.yellow)
@@ -134,7 +133,6 @@ local function executeAction()
     end
 end
 
--- Инициализация и запуск таймера
 refresh()
 local updateTimer = os.startTimer(0.05)
 
@@ -165,8 +163,7 @@ while true do
                 lastClickButton = p1
             end
         end
-
-    -- Постоянное обновление экрана по таймеру (для плавности курсора)
+		
     elseif event == "timer" and p1 == updateTimer then
         updateTimer = os.startTimer(0.05)
 
