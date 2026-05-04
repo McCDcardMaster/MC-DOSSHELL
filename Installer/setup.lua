@@ -69,6 +69,25 @@ term.clear()
 drawHeader()
 centerText(5, "Downloading: dosshell.lua from GitHub...")
 
+-- Имитация копирования
+local files = {"IO.SYS", "MCDOS.SYS", "COMMAND.COM", "DOSSHELL.EXE", "CONFIG.SYS"}
+for i, f in ipairs(files) do
+    term.setCursorPos(2, h-3)
+    term.setBackgroundColor(colors.blue)
+    term.setTextColor(colors.yellow)
+    term.write("Copying: " .. f)
+    
+    -- Рисуем прогресс-бар
+    term.setCursorPos(2, h-2)
+    term.setBackgroundColor(colors.lightGray)
+    term.write(string.rep(" ", w-4))
+    term.setCursorPos(2, h-2)
+    term.setBackgroundColor(colors.blue)
+    term.write(string.rep(" ", math.floor((i/#files)*(w-4))))
+    
+    sleep(0.6)
+end
+
 -- Создаем папку, если её нет
 if not fs.exists(INSTALL_DIR) then 
     fs.makeDir(INSTALL_DIR) 
