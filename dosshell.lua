@@ -267,7 +267,7 @@ local function draw()
     end
 
     if showMenu then
-        local items = {"Open", "Run...", "Move...", "Copy...", "Delete", "Rename...", "Create Dir"}
+        local items = {"Open - Enter", "Run - F5", "Move - F7", "Copy - F8", "Delete - Del", "Rename - F9", "Create Dir - N"}
         local menuWidth = 14
         local startX = 2
         local startY = 3
