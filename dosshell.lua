@@ -1,5 +1,5 @@
 local w, h = term.getSize()
-local currentPath = ""
+local currentPath = "/"   -- absolute path with leading "/"
 local selectedList = "dirs"
 local selDir, selFile = 1, 1
 local dirs, files = {}, {}
@@ -19,7 +19,7 @@ end
 local function refresh()
     local ok, all = pcall(fs.list, currentPath)
     if not ok then
-        currentPath = ""
+        currentPath = "/"
         ok, all = pcall(fs.list, currentPath)
         if not ok then
             setError("Directory access error")
@@ -65,14 +65,22 @@ local function confirmDialog(msg)
     return result == "y" or result == "yes"
 end
 
--- Safe command execution
-local function safeRun(command, description)
-    local ok, err = pcall(shell.run, command)
+-- Safe command execution with optional working directory
+local function safeRun(command, description, workingDir)
+    local ok, err
+    local oldDir = nil
+    if workingDir then
+        oldDir = shell.dir()
+        shell.setDir(workingDir)
+    end
+    ok, err = pcall(shell.run, command)
     if not ok then
         setError(string.format("Error while %s: %s", description or "running", err))
-        return false
     end
-    return true
+    if oldDir then
+        shell.setDir(oldDir)
+    end
+    return ok
 end
 
 -- Execute action (open folder / run file)
@@ -80,8 +88,12 @@ local function executeAction()
     if selectedList == "dirs" then
         local target = dirs[selDir]
         if target == ".." then
-            currentPath = fs.getDir(currentPath)
-            if currentPath == "." then currentPath = "" end
+            if currentPath == "/" then
+                currentPath = "/"
+            else
+                currentPath = fs.getDir(currentPath)
+                if currentPath == "" then currentPath = "/" end
+            end
         else
             currentPath = fs.combine(currentPath, target)
         end
@@ -89,7 +101,7 @@ local function executeAction()
         refresh()
     else
         if #files > 0 then
-            local fullPath = "/" .. fs.combine(currentPath, files[selFile])
+            local fullPath = fs.combine(currentPath, files[selFile])
             term.setBackgroundColor(colors.black); term.setTextColor(colors.white)
             term.clear(); term.setCursorPos(1, 1)
             local ok = safeRun(fullPath, "running file")
@@ -113,7 +125,7 @@ local function handleFileAction(actionIdx)
         if cmd and cmd ~= "" then
             term.setBackgroundColor(colors.black); term.setTextColor(colors.white)
             term.clear(); term.setCursorPos(1, 1)
-            if not safeRun(cmd, "executing command") then
+            if not safeRun(cmd, "executing command", currentPath) then
                 print("\n" .. errorMsg)
             else
                 print("\nPress any key to return...")
@@ -123,19 +135,30 @@ local function handleFileAction(actionIdx)
     elseif actionIdx == 3 then -- Move
         local name = (selectedList == "dirs") and dirs[selDir] or files[selFile]
         if not name then setError("Nothing selected"); refresh(); return end
-        local path = fs.combine(currentPath, name)
+        local src = fs.combine(currentPath, name)
         local dest = inputDialog("Move to")
         if dest and dest ~= "" then
-            local ok, err = pcall(fs.move, path, fs.combine(currentPath, dest))
+            -- resolve destination absolute path
+            if dest:sub(1,1) == "/" then
+                dest = dest
+            else
+                dest = fs.combine(currentPath, dest)
+            end
+            local ok, err = pcall(fs.move, src, dest)
             if not ok then setError("Move: " .. err) end
         end
     elseif actionIdx == 4 then -- Copy
         local name = (selectedList == "dirs") and dirs[selDir] or files[selFile]
         if not name then setError("Nothing selected"); refresh(); return end
-        local path = fs.combine(currentPath, name)
+        local src = fs.combine(currentPath, name)
         local dest = inputDialog("Copy to")
         if dest and dest ~= "" then
-            local ok, err = pcall(fs.copy, path, fs.combine(currentPath, dest))
+            if dest:sub(1,1) == "/" then
+                dest = dest
+            else
+                dest = fs.combine(currentPath, dest)
+            end
+            local ok, err = pcall(fs.copy, src, dest)
             if not ok then setError("Copy: " .. err) end
         end
     elseif actionIdx == 5 then -- Delete
@@ -150,17 +173,18 @@ local function handleFileAction(actionIdx)
     elseif actionIdx == 6 then -- Rename
         local name = (selectedList == "dirs") and dirs[selDir] or files[selFile]
         if not name then setError("Nothing selected"); refresh(); return end
-        local path = fs.combine(currentPath, name)
+        local src = fs.combine(currentPath, name)
         local newName = inputDialog("New name")
         if newName and newName ~= "" then
-            local newPath = fs.combine(currentPath, newName)
-            local ok, err = pcall(fs.move, path, newPath)
+            local dest = fs.combine(currentPath, newName)
+            local ok, err = pcall(fs.move, src, dest)
             if not ok then setError("Rename: " .. err) end
         end
     elseif actionIdx == 7 then -- Create Dir
         local folder = inputDialog("Folder name")
         if folder and folder ~= "" then
-            local ok, err = pcall(fs.makeDir, fs.combine(currentPath, folder))
+            local path = fs.combine(currentPath, folder)
+            local ok, err = pcall(fs.makeDir, path)
             if not ok then setError("Create folder: " .. err) end
         end
     end
@@ -190,9 +214,14 @@ local function draw()
     term.clearLine()
     term.write(" File  Options  View  Tree  Help")
     
-    -- Path
+    -- Path (convert UNIX style to DOS)
+    local displayPath = " C:\\"
+    if currentPath == "/" then
+        displayPath = displayPath .. ""
+    else
+        displayPath = displayPath .. currentPath:sub(2):gsub("/", "\\")
+    end
     term.setCursorPos(1, 3)
-    local displayPath = " C:\\" .. currentPath:gsub("/", "\\")
     term.write(displayPath)
     
     term.setBackgroundColor(colors.lightGray)
@@ -237,17 +266,34 @@ local function draw()
         term.write(string.sub(text .. string.rep(" ", w), 1, w - split - 1))
     end
 
-    -- Dropdown File menu
     if showMenu then
-        local items = {"Open", "Run...", "Move...", "Copy...", "Delete", "Rename...", "Create Dir"}
+        local items = {"Open", "Run...", "Move...", "Copy...", "Delete", "Rename", "Create Dir"}
+        local menuWidth = 14
+        local startX = 2
+        local startY = 3
+        local count = #items
+
+        term.setBackgroundColor(colors.lightGray)
+        
+        -- Shadow
+        for i = 1, count do
+            term.setCursorPos(startX + menuWidth, startY + i)
+            term.write(" ")
+        end
+        term.setCursorPos(startX + 2, startY + count)
+        term.write(string.rep(" ", 12))
+
+        -- Menu
+        term.setBackgroundColor(colors.white)
+        term.setTextColor(colors.black)
         for i, item in ipairs(items) do
-            term.setCursorPos(1, 2 + i)
-            term.setBackgroundColor(colors.lightGray); term.setTextColor(colors.black)
-            term.write(" " .. item .. string.rep(" ", 12 - #item))
+            term.setCursorPos(startX, startY + i - 1)
+            local line = " " .. item
+            term.write(line .. string.rep(" ", menuWidth - #line))
         end
     end
 
-    -- Bottom line: hints + error message (UPDATED: added F5=Run)
+    -- Bottom line: hints + error message
     term.setCursorPos(1, h)
     term.setBackgroundColor(colors.lightGray); term.setTextColor(colors.black)
     term.clearLine()
@@ -276,8 +322,6 @@ while true do
     
     if event == "mouse_move" or event == "mouse_click" or event == "mouse_drag" then
         mouseX, mouseY = p2, p3
-        draw()  -- Мгновенное обновление позиции курсора мыши
-        
         if event == "mouse_click" then
             if mouseY == 2 and mouseX >= 1 and mouseX <= 6 then
                 showMenu = not showMenu
@@ -307,7 +351,7 @@ while true do
             showMenu = not showMenu
         elseif p1 == keys.f3 then      -- Exit
             break
-        elseif p1 == keys.f5 then      -- Run (F5 added)
+        elseif p1 == keys.f5 then      -- Run
             handleFileAction(2)
         elseif p1 == keys.f7 then      -- Move
             handleFileAction(3)
